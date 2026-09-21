@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Items For Sale</title>
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --surface: #ffffff;
+    --surface-2: #f0ede8;
+    --text: #1c1a17;
+    --text-muted: #6b6560;
+    --border: #e4dfd8;
+    --accent: #b5562f;
+    --accent-text: #ffffff;
+    --shadow: 0 1px 2px rgba(30,20,10,0.06), 0 4px 16px rgba(30,20,10,0.06);
+    --radius: 14px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161412;
+      --surface: #201d1a;
+      --surface-2: #2a2622;
+      --text: #f2ede6;
+      --text-muted: #a89f95;
+      --border: #3a352f;
+      --accent: #e07a4d;
+      --accent-text: #1c1a17;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161412;
+    --surface: #201d1a;
+    --surface-2: #2a2622;
+    --text: #f2ede6;
+    --text-muted: #a89f95;
+    --border: #3a352f;
+    --accent: #e07a4d;
+    --accent-text: #1c1a17;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.35);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    line-height: 1.45;
+  }
+  header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 18px;
+  }
+  header h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.01em; }
+  header .sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 16px;
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  button.primary { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+  button.ghost { background: transparent; border: 1px solid var(--border); }
+  button.icon { padding: 8px; border-radius: 999px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; }
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 18px 90px; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty .big { font-size: 2.4rem; margin-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .card .thumb {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; color: var(--text-muted); font-size: 2rem;
+  }
+  .card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card .body { padding: 10px 12px 12px; }
+  .card .name { font-weight: 600; font-size: 0.95rem; margin: 0 0 2px; }
+  .card .price { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
+  .card .sold-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: var(--text-muted); color: var(--bg);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 999px;
+  }
+  .overlay {
+    position: fixed; inset: 0; background: rgba(15,12,10,0.55);
+    z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+    backdrop-filter: blur(1px);
+  }
+  @media (min-width: 640px) { .overlay { align-items: center; } }
+  .sheet {
+    background: var(--surface);
+    width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+    border-radius: 18px 18px 0 0;
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 640px) { .sheet { border-radius: 18px; max-height: 88vh; } }
+  .sheet h2 { margin: 0 0 12px; font-size: 1.15rem; }
+  .sheet-close { float: right; }
+  .detail-photos { display: flex; overflow-x: auto; gap: 8px; scroll-snap-type: x mandatory; border-radius: 12px; }
+  .detail-photos img {
+    width: 100%; flex: 0 0 100%; aspect-ratio: 1/1; object-fit: cover;
+    scroll-snap-align: start; border-radius: 12px; background: var(--surface-2);
+  }
+  .detail-dots { display: flex; justify-content: center; gap: 6px; margin: 8px 0 4px; }
+  .detail-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+  .detail-dots span.active { background: var(--accent); }
+  .detail-price { color: var(--accent); font-weight: 700; font-size: 1.1rem; margin: 6px 0 10px; }
+  .detail-desc { white-space: pre-wrap; font-size: 0.95rem; }
+  .contact-block { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+  .contact-block a { text-decoration: none; flex: 1; min-width: 100px; }
+  .contact-block a button { width: 100%; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="page-title">Items For Sale</h1>
+  <div class="sub" id="page-sub">Loading…</div>
+</header>
+
+<main>
+  <div id="grid-wrap"></div>
+</main>
+
+<div id="modal-root"></div>
+
+<script id="__state__" type="application/json">
+{"title":"Items For Sale","contact":{"phone":"","text":"","email":""},"items":[]}
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var state;
+  try {
+    state = JSON.parse(document.getElementById("__state__").textContent);
+  } catch (e) {
+    state = { title: "Items For Sale", contact: { phone: "", text: "", email: "" }, items: [] };
+  }
+
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    for (var k in attrs) {
+      if (k === "class") e.className = attrs[k];
+      else if (k === "html") e.innerHTML = attrs[k];
+      else if (k.indexOf("on") === 0) e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children || []).forEach(function (c) {
+      if (c == null) return;
+      e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+
+  function fmtPrice(p) {
+    if (p === "" || p == null || isNaN(Number(p))) return p || "";
+    return "$" + Number(p).toLocaleString();
+  }
+
+  function closeModal() { document.getElementById("modal-root").innerHTML = ""; }
+
+  function openModal(contentEl) {
+    var overlay = el("div", { class: "overlay", onclick: function (ev) { if (ev.target === overlay) closeModal(); } });
+    var sheet = el("div", { class: "sheet" });
+    sheet.appendChild(contentEl);
+    overlay.appendChild(sheet);
+    var root = document.getElementById("modal-root");
+    root.innerHTML = "";
+    root.appendChild(overlay);
+  }
+
+  function openDetail(itemId) {
+    var item = state.items.find(function (i) { return i.id === itemId; });
+    if (!item) return;
+    var photos = (item.photos && item.photos.length) ? item.photos : null;
+    var content = el("div", {}, [
+      el("button", { class: "icon sheet-close", onclick: closeModal }, ["\u2715"]),
+      el("h2", {}, [item.name || "Untitled item"])
+    ]);
+    if (photos) {
+      var strip = el("div", { class: "detail-photos" });
+      photos.forEach(function (p) { strip.appendChild(el("img", { src: p })); });
+      content.appendChild(strip);
+      if (photos.length > 1) {
+        var dots = el("div", { class: "detail-dots" });
+        photos.forEach(function (_, idx) { dots.appendChild(el("span", { class: idx === 0 ? "active" : "" })); });
+        content.appendChild(dots);
+        strip.addEventListener("scroll", function () {
+          var idx = Math.round(strip.scrollLeft / strip.clientWidth);
+          Array.prototype.forEach.call(dots.children, function (d, i) {
+            d.className = i === idx ? "active" : "";
+          });
+        });
+      }
+    }
+    content.appendChild(el("div", { class: "detail-price" }, [fmtPrice(item.price) + (item.sold ? "  \u00b7  SOLD" : "")]));
+    if (item.description) content.appendChild(el("div", { class: "detail-desc" }, [item.description]));
+
+    var c = state.contact || {};
+    if (c.phone || c.text || c.email) {
+      var cblock = el("div", { class: "contact-block" });
+      if (c.phone) cblock.appendChild(el("a", { href: "tel:" + c.phone }, [el("button", { class: "primary" }, ["\ud83d\udcde Call"])]));
+      if (c.text) cblock.appendChild(el("a", { href: "sms:" + c.text }, [el("button", { class: "ghost" }, ["\ud83d\udcac Text"])]));
+      if (c.email) cblock.appendChild(el("a", { href: "mailto:" + c.email + "?subject=" + encodeURIComponent(item.name || "Item") }, [el("button", { class: "ghost" }, ["\u2709\ufe0f Email"])]));
+      content.appendChild(cblock);
+    }
+    openModal(content);
+  }
+
+  function render() {
+    document.getElementById("page-title").textContent = state.title || "Items For Sale";
+    var activeCount = state.items.filter(function (i) { return !i.sold; }).length;
+    document.getElementById("page-sub").textContent =
+      activeCount + (activeCount === 1 ? " item" : " items") + " for sale";
+
+    var wrap = document.getElementById("grid-wrap");
+    wrap.innerHTML = "";
+    if (!state.items || state.items.length === 0) {
+      wrap.appendChild(el("div", { class: "empty" }, [
+        el("div", { class: "big" }, ["\ud83d\udecd\ufe0f"]),
+        el("div", {}, ["No items listed yet — check back soon."])
+      ]));
+      return;
+    }
+
+    var grid = el("div", { class: "grid" });
+    state.items.forEach(function (item) {
+      var thumb = el("div", { class: "thumb" },
+        item.photos && item.photos.length
+          ? [el("img", { src: item.photos[0], alt: item.name || "" })]
+          : ["\ud83d\uddbc\ufe0f"]
+      );
+      var card = el("div", { class: "card", onclick: function () { openDetail(item.id); } }, [
+        thumb,
+        el("div", { class: "body" }, [
+          el("p", { class: "name" }, [item.name || "Untitled item"]),
+          el("p", { class: "price" }, [fmtPrice(item.price)])
+        ])
+      ]);
+      if (item.sold) card.appendChild(el("div", { class: "sold-badge" }, ["SOLD"]));
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
